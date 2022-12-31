@@ -8,6 +8,8 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 	    
+from custom.hooks import BlogTitlesHook
+
 # start_date를 현재날자보다 과거로 설정하면, 
 # backfill(과거 데이터를 채워넣는 액션)이 진행됨
 	
@@ -28,31 +30,23 @@ with models.DAG(
         schedule_interval = '0/20 * * * *', 
         default_args=default_args) as dag:
     
-    def _get_blog_titles():
-        client_id = "un_OV5YDP0N1dOvzs71w" #os.getenv("NAVER_CLIENT_ID")
-        client_secret = "lPMIYHfp_5" #os.getenv("NAVER_SECRET")
-        encText = urllib.parse.quote("서울 맛집")
-        result_num = 100
-        url = f"https://openapi.naver.com/v1/search/blog?query={encText}&display={result_num}&sort=date" # JSON 결과
+    def _store_blog_titles(conn_id):
+        logger = logging.getLogger(__name__)
+        
         now = datetime.now()
         formatted_date = now.strftime("%Y%m%d_%H%M%S")
-        
-        try:
-            request = urllib.request.Request(url)
-            request.add_header("X-Naver-Client-Id",client_id)
-            request.add_header("X-Naver-Client-Secret",client_secret)
-            response = urllib.request.urlopen(request)
-            response_body = response.read()
-            result = eval(response_body.decode('utf-8'))
-            file_output_path='/home/evan/projects-personal/naver-search-keyword/src/airflow/data'
-            with open(f"{file_output_path}/blog_titles_{formatted_date}.json", 'w') as f:
-                json.dump(result, f)
-        except :
-            print("Error")
+        blog_titles_hook=BlogTitlesHook(conn_id=conn_id)
+        title_list = blog_titles_hook.get_blog_titles(query="서울 맛집")
+    
+        output_dir='/home/evan/projects-personal/naver-search-keyword/src/airflow/data'
+        os.makedir(output_dir, exist_ok=True)
+
+        with open(f"{output_dir}/blog_titles_{formatted_date}.json", 'w', encoding='utf-8') as f:
+            json.dump(title_list, f)
     
     t1 = PythonOperator(
-            task_id='get_blog_titles',
-            python_callable=_get_blog_titles,
+            task_id='store_blog_titles',
+            python_callable=_store_blog_titles,
             dag=dag)
 		
     # BashOperator를 사용
