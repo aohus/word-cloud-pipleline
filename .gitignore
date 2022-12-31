@@ -1,0 +1,4 @@
+src/airflow/logs/*
+src/airflow/data/*
+*.log
+*.pyc
