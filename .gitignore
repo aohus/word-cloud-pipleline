@@ -2,3 +2,5 @@ src/airflow/logs/*
 src/airflow/data/*
 *.log
 *.pyc
+src/airflow/airflow-webserver.*
+src/airflow/airflow.db
