@@ -4,4 +4,5 @@ src/airflow/data/*
 *.pyc
 src/airflow/airflow-webserver.*
 src/airflow/airflow.db
-__pycache__
+__pycache_
+data/
