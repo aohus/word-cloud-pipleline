@@ -38,7 +38,7 @@ with models.DAG(
         blog_titles_hook=BlogTitlesHook(conn_id=conn_id)
         title_list = blog_titles_hook.get_blog_titles(query="서울 맛집")
     
-        output_dir='/home/evan/projects-personal/naver-search-keyword/src/airflow/data'
+        output_dir='/home/evan/projects-personal/naver-search-keyword/data'
         os.makedir(output_dir, exist_ok=True)
 
         with open(f"{output_dir}/blog_titles_{formatted_date}.json", 'w', encoding='utf-8') as f:
